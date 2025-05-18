@@ -6,10 +6,10 @@
         <title>Doughts Simulator</title>
         <style>
             :root {
-                --bg: #bed4d4;
-                --Color: #b17b39;
-                --btnColor: #a0c5c5;
-                --Border: 1px solid;
+                --bg: #dca46c;
+                --btnColor: #7c543c;
+                --Color: #000;
+                --Border: 1px solid #000;
                 --Padding: 20px;
                 --FontSize: 1rem;
                 --Main-width: 90%;
@@ -28,8 +28,9 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                background-color: var(--bg);
+                background-color: #7c543c;
                 margin: 0px 5px;
+                
             }
             header img {
                 margin-right: 20px;
@@ -37,7 +38,7 @@
             }
             header .name {
                 margin-left: 20px;
-                color: var(--Color);
+                color: #f8f8ff;
                 font-size: 1.1rem;
                 font-weight: bold;
             }
@@ -49,6 +50,7 @@
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
+                min-height: auto;
                 margin: 0px 5px;
             }
 
@@ -59,6 +61,7 @@
                 padding: var(--Padding);
                 display: flex;
                 flex-direction: column;
+                min-height: 70svh;
                 justify-content: center;
                 align-items: center;
             }
@@ -81,10 +84,13 @@
             main .Input {
                 outline: none;
                 border: 1px solid var(--Color);
+                padding: 8px;
             }
+        
             main .Input:focus {
-                box-shadow: 0px 0px 1px 0.1px #b17b39;
+                box-shadow: 0px 0px 1px 0.1px #4c240e;
                 outline: none;
+                border: 1px solid #4c240e;
             }
 
             hr {
@@ -107,14 +113,20 @@
 
             button {
                 text-align: center;
-                background-color: #e85310;
-                color: white;
+                background-color: var(--btnColor);
+                color: #fff;
                 padding: 5px;
                 width: var(--Main-width);
                 border-top: unset;
                 border-radius: 6px;
+                border: 0;
+                box-shadow: -0.5px -0.5px 0px 0.5px #fbfdd5 ;
             }
-
+            button:hover {
+                box-shadow: 0.5px 0.5px 0px 0.5px #fbfdd5;
+                transition: all 0.1s ease-in-out;
+                
+            }
             main .container .Final-result {
                 width: var(--Main-width);
                 display: flex;
@@ -173,7 +185,10 @@
                 border: 1px solid;
                 text-align: center;
             }
-
+            #Counter::placeholder, 
+            #killo-result::placeholder {
+                color: #fff;
+            }
             #killos {
                 padding: 5px;
                 width: 80%;
@@ -195,7 +210,7 @@
             }
 
             ol li.show {
-                border: 1px solid #b17b39;
+                border: 1px solid #4c240e;
                 padding: 5px;
                 text-align: center;
                 list-style-type: numeric;
