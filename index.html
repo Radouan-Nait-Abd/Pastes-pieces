@@ -1,5 +1,7 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -301,25 +303,23 @@
                     <option value="pain ou plus">بان او بلوس</option>
                 </select>
                 <hr />
-                <label for="bag">شحال كادير فباطو؟</label>
+                <label for="bag">شحال كدير فپياسة؟</label>
                 <select class="Select" name="bag" id="bag">
-                    <option value="2400">2,400kg</option>
-                    <option value="3500">3,500kg</option>
-                    <option value="5000">5,000kg</option>
-                    <option value="5400">5,400kg</option>
-                    <option value="6000">6,000kg</option>
-                    <option value="7000">7,000kg</option>
-                    <option value="7400">7,400kg</option>
-                    <option value="7500">7,500kg</option>
-                    <option value="8000">8,000kg</option>
+                    <option value="300">300g</option>
+                    <option value="250">250g</option>
+                    <option value="125">125g</option>
+                    <option value="60">60g</option>
+                    <option value="30">30g</option>
+                    <option value="15">15kg</option>
                 </select>
                 <hr />
-                <label for="quantity">باطو</label>
+                <label for="quantity">بياسات</label>
                 <input
+                    autofocus
                     class="Input"
                     type="number"
                     id="bato-quantity"
-                    placeholder="شحال بغيتي من باطو؟"
+                    placeholder="شحال بغيتي من بياسة؟"
                 />
                 <hr />
                 <section class="bato-results">
@@ -697,7 +697,7 @@
                 ).toLocaleString()} جرام`;
                 document.getElementById(
                     "result7"
-                ).innerHTML = `مالتي = ${malt.toFixed()} جرام`;
+                ).innerHTML = `مالتي = ${malt} جرام`;
 
                 document.getElementById("ol").style.listStyle = "normal";
 
