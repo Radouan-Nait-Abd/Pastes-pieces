@@ -585,7 +585,7 @@
                     killo.value <= 0 ? 15 * counter : 15 * killo.value;
                 const Salt =
                     killo.value <= 0
-                        ? salt * (counter - 5)
+                        ? salt * (counter)
                         : salt * killo.value;
                 const Podr =
                     killo.value <= 0 ? podr * counter : podr * killo.value;
@@ -650,8 +650,8 @@
                 const Sugar = kilo.value <= 0 ? 15 * counter : 15 * kilo.value;
                 const Salt =
                     kilo.value <= 0
-                        ? salt * (counter - 7)
-                        : salt * (kilo.value - 7);
+                        ? salt * (counter)
+                        : salt * (kilo.value);
                 const Podr =
                     kilo.value <= 0 ? podr * counter : podr * kilo.value;
                 const Water =
