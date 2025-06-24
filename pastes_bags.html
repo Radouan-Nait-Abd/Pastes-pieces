@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Doughts Simulator for batos</title>
+        <style>
+            :root {
+                --bg: #dca46c;
+                --btnColor: #7c543c;
+                --Color: #000;
+                --Border: 1px solid #000;
+                --Padding: 20px;
+                --FontSize: 1rem;
+                --Main-width: 90%;
+            }
+            * {
+                color: var(--Color);
+                font-family: Monospace;
+                font-size: var(--FontSize);
+                border-radius: 6px;
+                font-weight: bold;
+            }
+
+            header {
+                border-radius: 6px;
+                padding: 5px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background-color: #7c543c;
+                margin: 0px 5px;
+                
+            }
+            header img {
+                margin-right: 20px;
+                width: 70px;
+            }
+            header .name {
+                margin-left: 20px;
+                color: #f8f8ff;
+                font-size: 1.1rem;
+                font-weight: bold;
+            }
+            main {
+                border-radius: 6px;
+                padding: 5px;
+                background-color: var(--bg);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                min-height: auto;
+                margin: 0px 5px;
+            }
+            
+
+            main .container {
+                border-radius: 6px;
+                border: var(--Border);
+                width: var(--Main-width);
+                padding: var(--Padding);
+                display: flex;
+                flex-direction: column;
+                min-height: 70svh;
+                justify-content: center;
+                align-items: center;
+            }
+
+            main .Select {
+                box-sizing: border-box;
+                padding: 8px;
+                width: var(--Main-width);
+                text-align: center;
+                color: var(--btnColor);
+                border: 1px solid var(--btnColor);
+            }
+
+            main .Input {
+                box-sizing: border-box;
+                outline: none;
+                text-align: center;
+                padding: 5px;
+                width: 90%;
+            }
+
+            main .Input {
+                outline: none;
+                border: 1px solid var(--btnColor);
+                padding: 8px;
+            }
+        
+            main .Input:focus {
+                box-shadow: 0px 0px 1px 0.1px #4c240e;
+                outline: none;
+                border: 1px solid var(--btnColor);
+            }
+        
+            hr {
+                width: 90%;
+                background-color: var(--btnColor);
+                height: 1px;
+                border: none;
+                
+            }
+
+            main .container .killo-results {
+                width: var(--Main-width);
+                border: var(--btnColor);
+                padding: 8px;
+                box-sizing: border-box;
+                display: flex;
+                justify-content: center;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            button {
+                text-align: center;
+                background-color: var(--btnColor);
+                color: #fff;
+                padding: 8px;
+                width: var(--Main-width);
+                border-top: unset;
+                border-radius: 6px;
+                border: 0;
+                box-shadow: -0.5px -0.5px 0px 0.5px #fbfdd5 ;
+            }
+            button:hover {
+                box-shadow: 0.5px 0.5px 0px 0.5px #fbfdd5;
+                transition: all 0.1s ease-in-out;
+                
+            }
+            main .container .Final-result {
+                width: var(--Main-width);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                border: var(--Border);
+                padding: 8px;
+                box-sizing: border-box;
+            }
+
+            main .container .bato-results {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                width: var(--Main-width);
+                padding: 8px;
+                border: var(--Border);
+                box-sizing: border-box;
+                outline: none;
+            }
+
+            main .container .Final-result #ol-result {
+                width: var(--Main-width);
+                box-sizing: border-box;
+            }
+
+            main .container .Final-result #ol-result ol {
+                list-style: none;
+                border-radius: 5px;
+                padding: 15px 15px 0px 15px;
+                text-align: center;
+                margin: 0;
+                width: var(--Main-width);
+            }
+
+            main .container .Final-result #ol-result ol li {
+                border-radius: 5px;
+                margin: 10px;
+                color: var(--Color);
+                text-align: center;
+            }
+            select {
+                border: 1px solid var(--Color);
+                outline: none;
+                
+            }
+            #header-hr {
+                width: 95%;
+            }
+
+            #killo-result,
+            #Counter {
+                padding: 8px;
+                width: 80%;
+                border: 1px solid;
+                text-align: center;
+                color: var(--btnColor);
+            }
+            #Counter::placeholder, 
+            #killo-result::placeholder {
+                color: var(--btnColor);
+            }
+            
+            #killos {
+                padding: 8px;
+                width: 80%;
+                text-align: center;
+                outline: none;
+                border: 1px solid;
+            }
+            
+            #killos::placeholder,
+            #bato-quantity::placeholder {
+                color: var(--btnColor);
+            }
+            
+
+            #nameOfDough {
+                text-align: center;
+                color: var(--Color);
+            }
+            #last-hr {
+                margin-top: 0;
+            }
+
+            #undisplayed-li {
+                display: none;
+            }
+
+            ol li.show {
+                border: 1px solid #4c240e;
+                padding: 5px;
+                text-align: center;
+                list-style-type: numeric;
+            }
+
+            .Final-result #ol-result ol li:last-child {
+                margin-bottom: 0;
+            }
+
+            body {
+                position: relative;
+                background-color: #333;
+            }
+
+            #msg {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                background-color: red;
+            }
+
+            #msg p {
+                gap: 5px;
+                position: absolute;
+                padding: 7px;
+                top: 120px;
+                background-color: #eee;
+                color: var(--btnColor);
+                box-shadow: 0px 0px 1px 0.5px;
+                transform: translateY(-200px);
+                transition: all 0.4s 0.01s linear;
+                opacity: 0;
+            }
+
+            body.show #msg p {
+                opacity: 1;
+                transform: translateY(56vh);
+            }
+            #Hr {
+                background-color: var(--bg)
+            }
+            
+            body {
+                background: var(--bg);
+            }
+            input {
+                color: var(--btnColor);
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="name">Dough Simulator for batos</div>
+            <a href="http://maisonserraj.ma"
+                ><img src="le-paradis-logo.webp" alt="Logo"
+            /></a>
+        </header>
+        <hr id="header-hr" />
+        <div id="msg">
+            <p>hello</p>
+        </div>
+        <main>
+            <section class="container">
+                <label for="PastesType">نوع العجينة</label>
+                <br />
+                <select class="Select" name="pastes-name" id="PastesType">
+                    <option value="Semoule">السميدة</option>
+                    <option value="Baguette">باگيط عادي</option>
+                    <option value="Pain Ou Lait">خبز بالحليب</option>
+                    <option value="Org">الشعير</option>
+                    <option value="Zr3">زرع</option>
+                    <option value="trad">طراد</option>
+                    <option value="pain ou plus">بان او بلوس</option>
+                </select>
+                <hr />
+                <label for="bag">شحال كادير فباطو؟</label>
+                <select class="Select" name="bag" id="bag">
+                    <option value="2400">2,400kg</option>
+                    <option value="3500">3,500kg</option>
+                    <option value="5000">5,000kg</option>
+                    <option value="5400">5,400kg</option>
+                    <option value="6000">6,000kg</option>
+                    <option value="7000">7,000kg</option>
+                    <option value="7400">7,400kg</option>
+                    <option value="7500">7,500kg</option>
+                    <option value="8000">8,000kg</option>
+                </select>
+                <hr />
+                <label for="quantity">باطو</label>
+                <input
+                    autofocus
+                    class="Input"
+                    type="number"
+                    id="bato-quantity"
+                    placeholder="شحال بغيتي من باطو؟"
+                />
+                <hr />
+                <section class="bato-results">
+                    <input
+                        type="text"
+                        id="killo-result"
+                        placeholder="النتائج"
+                        disabled
+                    />
+                    <hr />
+                    <input
+                        disabled
+                        type="text"
+                        id="Counter"
+                        placeholder="المجموع بالكيلو"
+                    />
+                    <hr />
+                    <input
+                        type="number"
+                        id="killos"
+                        placeholder="شحال بغيتي من كيلو؟"
+                    />
+                    <hr />
+                    <label for="btn"></label>
+                    <button id="btn" type="button" onclick="calculate()">
+                        حسب شحال غاتلوح
+                    </button>
+                </section>
+                <hr />
+                <section class="Final-result">
+                    <hr id="last-hr" />
+                    <button type="button" id="lastBtn" onclick="calculateAll()">
+                        العملية الحسابية النهائية
+                    </button>
+                    <div id="ol-result">
+                        <h2 id="nameOfDough"></h2>
+                        <hr />
+                        <ol id="ol">
+                            <li id="result1"></li>
+                            <li id="result2"></li>
+                            <li id="result3"></li>
+                            <li id="result4"></li>
+                            <li class="undisplayed-li" id="result5"></li>
+                            <li class="undisplayed-li" id="result6"></li>
+                            <li class="undisplayed-li" id="result7"></li>
+                        </ol>
+                        <hr / id="Hr">
+                    </div>
+                </section>
+            </section>
+        </main>
+        <script>
+            let Result = document.getElementById("results");
+            const sugar = 20;
+            const salt = 15;
+            const podr = 3;
+            const water = 500;
+            let counter = 0;
+
+            let getDoughName = () => {
+                let DoughName = document.getElementById("PastesType").value;
+                return DoughName;
+            };
+
+            let getBagWeight = () => {
+                let bagweight = document.getElementById("bag").value;
+                return bagweight;
+            };
+
+            let getBagQuantity = () => {
+                let bagquantity =
+                    document.getElementById("bato-quantity").value;
+                return bagquantity;
+            };
+
+            let isDebouncing = false;
+            let isClicked = false;
+
+            function calculate(updateCounter = true) {
+                if (isDebouncing) return;
+                isDebouncing = true;
+
+                const Name = getDoughName();
+                const Bag = getBagWeight();
+                const Quantity = getBagQuantity();
+                let results =
+                    Name == "pain ou plus" || Name == "trad"
+                        ? (Bag * Quantity) / 1700
+                        : (Bag * Quantity) / 1650;
+
+                globResult = results;
+
+                if (updateCounter) {
+                    counter += results;
+                    if (!isClicked) {
+                        isClicked = true;
+                    } else if (isClicked && results !== 0) {
+                        document.querySelector("body").classList.add("show");
+                        setTimeout(() => {
+                            document
+                                .querySelector("body")
+                                .classList.remove("show");
+                        }, 2500);
+                        document.querySelector(
+                            "#msg p"
+                        ).innerHTML = `تم اضافة {${Math.floor(
+                            results
+                        ).toLocaleString()} كيلو غرام} بنجاح ✔`;
+                    }
+                }
+
+                if (results !== 0 && counter !== 0) {
+                    document.getElementById(
+                        "Counter"
+                    ).value = `المجموع ${Math.floor(counter)} كيلو`;
+
+                    document.getElementById(
+                        "killo-result"
+                    ).value = `غاتلوح ${Math.floor(results)} كيلو`;
+                }
+
+                resetLiStyle();
+
+                setTimeout(() => {
+                    isDebouncing = false;
+                }, 1200);
+                return results;
+            }
+
+            function semoule() {
+                const result = calculate(false);
+                const kilo = document.getElementById("killos");
+
+                const Sugar =
+                    kilo.value <= 0 ? sugar * counter : sugar * kilo.value;
+                const Salt =
+                    kilo.value <= 0 ? salt * counter : salt * kilo.value;
+                const Podr =
+                    kilo.value <= 0 ? podr * counter : podr * kilo.value;
+                const Water =
+                    kilo.value <= 0 ? water * counter : water * kilo.value;
+
+                const Name = getDoughName();
+                document.getElementById("nameOfDough").innerHTML = Name;
+                document.getElementById(
+                    "result1"
+                ).innerHTML = `السكر = ${Math.floor(
+                    Sugar
+                ).toLocaleString()} جرام`;
+                document.getElementById(
+                    "result2"
+                ).innerHTML = `الملح = ${Math.floor(Salt)} جرام`;
+                document.getElementById(
+                    "result3"
+                ).innerHTML = `البودر = ${Math.floor(Podr)} جرام`;
+                document.getElementById(
+                    "result4"
+                ).innerHTML = `الماء = ${Math.floor(
+                    Water
+                ).toLocaleString()} لتر`;
+
+                document.getElementById("ol").style.listStyle = "normal";
+
+                document.querySelectorAll("ol li").forEach((li) => {
+                    li.classList.add("show");
+                });
+            }
+
+            function baguette() {
+                const result = calculate(false);
+                const killo = document.getElementById("killos");
+
+                const Sugar =
+                    killo.value <= 0 ? sugar * counter : sugar * killo.value;
+                const Salt =
+                    killo.value <= 0 ? salt * counter : salt * killo.value;
+                const Podr =
+                    killo.value <= 0 ? podr * counter : podr * killo.value;
+                const Water =
+                    killo.value <= 0 ? water * counter : water * killo.value;
+
+                const Name = getDoughName();
+                document.getElementById("nameOfDough").innerHTML = Name;
+                document.getElementById(
+                    "result1"
+                ).innerHTML = `السكر = ${Math.floor(
+                    Sugar
+                ).toLocaleString()} جرام`;
+                document.getElementById(
+                    "result2"
+                ).innerHTML = `الملح = ${Math.floor(Salt)} جرام`;
+                document.getElementById(
+                    "result3"
+                ).innerHTML = `البودر = ${Math.floor(Podr)} جرام`;
+                document.getElementById(
+                    "result4"
+                ).innerHTML = `الماء = ${Math.floor(
+                    Water
+                ).toLocaleString()} لتر`;
+
+                document.getElementById("ol").style.listStyle = "normal";
+
+                document.querySelectorAll("ol li").forEach((li) => {
+                    li.classList.add("show");
+                });
+            }
+
+            function painOuLait() {
+                const result = calculate(false);
+                const killo = document.getElementById("killos");
+                const Sugar = killo.value <= 0 ? 80 * result : 80 * killo.value;
+                const Salt = killo.value <= 0 ? 20 * result : 20 * killo.value;
+                const Butter =
+                    killo.value <= 0 ? 80 * counter : 80 * killo.value;
+                const Podr =
+                    killo.value <= 0 ? podr * counter : podr * killo.value;
+                const Water =
+                    killo.value <= 0 ? 450 * counter : 450 * killo.value;
+                const Nido = killo.value <= 0 ? 10 * counter : 10 * killo.value;
+                const Name = getDoughName();
+                document.getElementById("nameOfDough").innerHTML = Name;
+
+                document.getElementById(
+                    "result1"
+                ).innerHTML = `السكر = ${Math.floor(
+                    Sugar
+                ).toLocaleString()} جرام`;
+                document.getElementById(
+                    "result2"
+                ).innerHTML = `الملح = ${Math.floor(Salt)} جرام`;
+                document.getElementById(
+                    "result3"
+                ).innerHTML = `الزبدة = ${Math.floor(
+                    Butter
+                ).toLocaleString()} جرام`;
+                document.getElementById(
+                    "result4"
+                ).innerHTML = `البودر = ${Math.floor(Podr)} جرام`;
+                document.getElementById(
+                    "result5"
+                ).innerHTML = `الماء = ${Math.floor(
+                    Water
+                ).toLocaleString()} لتر`;
+                document.getElementById(
+                    "result6"
+                ).innerHTML = `النيدو = ${Math.floor(Nido)} جرام`;
+
+                document.getElementById("ol").style.listStyle = "normal";
+
+                document.getElementById("result5").style.display = "list-item";
+                document.getElementById("result6").style.display = "list-item";
+
+                document.querySelectorAll("ol li").forEach((li) => {
+                    li.classList.add("show");
+                });
+            }
+
+            function org() {
+                const result = calculate(false);
+                const killo = document.getElementById("killos");
+
+                const Sugar =
+                    killo.value <= 0 ? 15 * counter : 15 * killo.value;
+                const Salt =
+                    killo.value <= 0
+                        ? salt * (counter)
+                        : salt * killo.value;
+                const Podr =
+                    killo.value <= 0 ? podr * counter : podr * killo.value;
+                const Water =
+                    killo.value <= 0 ? water * counter : water * killo.value;
+
+                const devidBy6 =
+                    killo.value <= 0 ? counter / 6 : killo.value / 6;
+                const multiplyBy4 = devidBy6 * 4;
+                const sigle = multiplyBy4 * 150;
+                const blbola = multiplyBy4 * 50;
+
+                const Name = getDoughName();
+                document.getElementById("nameOfDough").innerHTML = Name;
+                document.getElementById(
+                    "result1"
+                ).innerHTML = `السكر = ${Math.floor(
+                    Sugar
+                ).toLocaleString()} جرام`;
+                document.getElementById(
+                    "result2"
+                ).innerHTML = `الملح = ${Math.floor(Salt)} جرام`;
+                document.getElementById(
+                    "result3"
+                ).innerHTML = `البودر = ${Math.floor(Podr)} جرام`;
+                document.getElementById(
+                    "result4"
+                ).innerHTML = `الماء = ${Math.floor(
+                    Water
+                ).toLocaleString()} لتر`;
+                document.getElementById(
+                    "result5"
+                ).innerHTML = `الدقيق = ${Math.floor(
+                    multiplyBy4
+                ).toLocaleString()} كيلو`;
+                document.getElementById(
+                    "result6"
+                ).innerHTML = `البلبولة = ${Math.floor(
+                    blbola
+                ).toLocaleString()} جرام`;
+                document.getElementById(
+                    "result7"
+                ).innerHTML = `سيگل/زرع/شعير = ${Math.floor(
+                    sigle
+                ).toLocaleString()} جرام`;
+
+                document.getElementById("ol").style.listStyle = "normal";
+
+                document.getElementById("result5").style.display = "list-item";
+                document.getElementById("result6").style.display = "list-item";
+                document.getElementById("result7").style.display = "list-item";
+
+                document.querySelectorAll("ol li").forEach((li) => {
+                    li.classList.add("show");
+                });
+            }
+
+            function zr3() {
+                const result = calculate(false);
+                const kilo = document.getElementById("killos");
+
+                const Sugar = kilo.value <= 0 ? 15 * counter : 15 * kilo.value;
+                const Salt =
+                    kilo.value <= 0
+                        ? salt * (counter)
+                        : salt * (kilo.value);
+                const Podr =
+                    kilo.value <= 0 ? podr * counter : podr * kilo.value;
+                const Water =
+                    kilo.value <= 0 ? water * counter : water * kilo.value;
+                const malt = kilo.value <= 0 ? 10 * counter : 10 * kilo.value;
+
+                const multiplyBy17777 =
+                    kilo.value <= 0 ? counter / 1.7777 : kilo.value / 1.7777;
+
+                const zr3Killos =
+                    kilo.value <= 0
+                        ? counter - multiplyBy17777
+                        : kilo.value - multiplyBy17777;
+
+                const Name = getDoughName();
+                document.getElementById("nameOfDough").innerHTML = Name;
+
+                document.getElementById(
+                    "result1"
+                ).innerHTML = `السكر = ${Math.floor(
+                    Sugar
+                ).toLocaleString()} جرام`;
+                document.getElementById(
+                    "result2"
+                ).innerHTML = `الملح = ${Math.floor(Salt)} جرام`;
+                document.getElementById(
+                    "result3"
+                ).innerHTML = `البودر = ${Math.floor(Podr)} جرام`;
+                document.getElementById(
+                    "result4"
+                ).innerHTML = `الماء = ${Math.floor(
+                    Water
+                ).toLocaleString()} لتر`;
+                document.getElementById(
+                    "result5"
+                ).innerHTML = `الدقيق = ${Math.floor(
+                    multiplyBy17777
+                ).toLocaleString()} كيلو`;
+                document.getElementById(
+                    "result6"
+                ).innerHTML = `زرع = ${Math.floor(
+                    zr3Killos
+                ).toLocaleString()} كيلو`;
+                document.getElementById(
+                    "result7"
+                ).innerHTML = `مالتي = ${malt.toFixed()} جرام`;
+
+                document.getElementById("ol").style.listStyle = "normal";
+
+                document.getElementById("result5").style.display = "list-item";
+                document.getElementById("result6").style.display = "list-item";
+                document.getElementById("result7").style.display = "list-item";
+
+                document.querySelectorAll("ol li").forEach((li) => {
+                    li.classList.add("show");
+                });
+            }
+
+            function trad() {
+                const kilo = document.getElementById("killos");
+                const multiSavor =
+                    kilo.value <= 0 ? 20 * counter : 20 * kilo.value;
+                const Salt = kilo.value <= 0 ? 15 * counter : 15 * kilo.value;
+                const khmiraBldiya =
+                    kilo.value <= 0 ? 25 * counter : 25 * kilo.value;
+                const Water =
+                    kilo.value <= 0 ? 650 * counter : 650 * kilo.value;
+                const Polish =
+                    kilo.value <= 0 ? 200 * counter : 200 * kilo.value;
+
+                const Name = getDoughName();
+                document.getElementById("nameOfDough").innerHTML = Name;
+
+                document.getElementById(
+                    "result1"
+                ).innerHTML = `مالتي سافور = ${multiSavor} جرام`;
+                document.getElementById(
+                    "result2"
+                ).innerHTML = `ملح = ${Salt} جرام`;
+                document.getElementById(
+                    "result3"
+                ).innerHTML = `خميرة بلدية = ${khmiraBldiya.toLocaleString()} جرام`;
+                document.getElementById(
+                    "result4"
+                ).innerHTML = `الماء = ${Water.toLocaleString()} لتر`;
+                document.getElementById("result5").style.display = "list-item";
+                document.getElementById("result6").style.display = "none";
+                document.getElementById("result7").style.display = "none";
+                document.getElementById(
+                    "result5"
+                ).innerHTML = `بوليش = ${Polish.toLocaleString()} جرام`;
+
+                document.getElementById("ol").style.listStyle = "normal";
+                document.querySelectorAll("ol li").forEach((li) => {
+                    li.classList.add("show");
+                });
+            }
+
+            function painOuPlus() {
+                const kilo = document.getElementById("killos");
+                const PainOuPlus =
+                    kilo.value <= 0 ? 70 * counter : 70 * kilo.value;
+                const Salt = kilo.value <= 0 ? 15 * counter : 15 * kilo.value;
+                const Water =
+                    kilo.value <= 0 ? 700 * counter : 700 * kilo.value;
+                const khmiraBldiya =
+                    kilo.value <= 0 ? 25 * counter : 25 * kilo.value;
+
+                const Name = getDoughName();
+                document.getElementById("nameOfDough").innerHTML = Name;
+
+                document.querySelectorAll("ol li").forEach((li) => {
+                    li.classList.add("show");
+                });
+                document.getElementById(
+                    "result1"
+                ).innerHTML = `بان او بلوس = ${PainOuPlus.toLocaleString()} جرام`;
+                document.getElementById(
+                    "result2"
+                ).innerHTML = `ملح = ${Salt} جرام`;
+                document.getElementById(
+                    "result3"
+                ).innerHTML = `خميرة بلدية = ${khmiraBldiya.toLocaleString()} جرام`;
+                document.getElementById(
+                    "result4"
+                ).innerHTML = `الماء = ${Water.toLocaleString()} لتر`;
+
+                // document.getElementById("result4").style.display = "none";
+            }
+
+            document.getElementById("lastBtn").addEventListener("click", () => {
+                // document.getElementById("killos").value = counter;
+                counter = 0;
+                document.getElementById("Counter").value = "";
+                document.getElementById("killo-result").value = "";
+            });
+
+            document.getElementById("btn").addEventListener("click", () => {
+                if (counter !== 0) {
+                    document.getElementById("killos").value =
+                        Math.floor(counter);
+                }
+                // document.getElementById("killos").value = "";
+            });
+
+            function calculateAll() {
+                const Name = getDoughName();
+                if (Name === "Semoule") {
+                    semoule();
+                    resetLiStyle();
+                } else if (Name === "Baguette") {
+                    baguette();
+                    resetLiStyle();
+                } else if (Name === "Pain Ou Lait") {
+                    painOuLait();
+                    document.getElementById("result7").style.display = "none";
+                } else if (Name === "Org") {
+                    org();
+                } else if (Name === "Zr3") {
+                    zr3();
+                } else if (Name === "trad") {
+                    trad();
+                    // resetLiStyle();
+                } else if (Name === "pain ou plus") {
+                    painOuPlus();
+                    resetLiStyle();
+                }
+            }
+
+            function resetLiStyle() {
+                document.getElementById("result5").style.display = "none";
+                document.getElementById("result6").style.display = "none";
+                document.getElementById("result7").style.display = "none";
+            }
+            
+            document.getElementById('lastBtn').addEventListener('click', () => {
+                const lastLi = document.querySelector('#Hr');
+                if (lastLi) {
+                  lastLi.scrollIntoView({ behavior: 'smooth' }); 
+                
+              }
+            });
+        </script>
+    </body>
+</html>
