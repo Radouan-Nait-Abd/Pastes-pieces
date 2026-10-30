@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dough Simulator for pieces</title>
+    <style>
+        :root {
+            --oven: #1b1d1c;
+            --crust: #262a28;
+            --line: #3a403d;
+            --flour: #eef0ea;
+            --muted: #98a39d;
+            --wheat: #e0a63f;
+            --sage: #7fb5ab;
+            --radius: 10px;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100svh;
+            background: var(--oven);
+            color: var(--flour);
+            font: 1rem/1.5 system-ui, "Segoe UI", Tahoma, sans-serif;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 14px 16px;
+        }
+        header h1 { margin: 0; font-size: 1.15rem; color: var(--wheat); }
+        header img { display: block; width: 64px; }
+
+        main {
+            display: grid;
+            gap: 14px;
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 0 16px 32px;
+        }
+
+        section {
+            display: grid;
+            gap: 10px;
+            padding: 16px;
+            background: var(--crust);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+        }
+
+        label, .head { color: var(--muted); font-size: .85rem; }
+
+        input, select {
+            width: 100%;
+            padding: 11px 8px;
+            font: inherit;
+            text-align: center;
+            color: var(--flour);
+            background: var(--oven);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+        }
+        select { text-align-last: center; }
+        input::placeholder { color: var(--muted); font-size: .85rem; }
+        input:focus-visible, select:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
+
+        /* Batch rows: bag weight, pieces, resulting kilos */
+        .batch, .head { display: grid; grid-template-columns: 1fr 1fr 64px; gap: 8px; align-items: center; }
+        .head span { text-align: center; }
+        .batch output { text-align: center; color: var(--sage); font-variant-numeric: tabular-nums; }
+
+        /* Running total: the one loud element */
+        #total {
+            display: block;
+            padding: 10px;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--wheat);
+            border: 1px dashed var(--line);
+            border-radius: var(--radius);
+            font-variant-numeric: tabular-nums;
+        }
+        #total:empty::before { content: attr(data-placeholder); color: var(--muted); font-size: .9rem; font-weight: 400; }
+
+        #result h2 { margin: 0; color: var(--wheat); font-size: 1.1rem; }
+        #result ul { margin: 0; padding: 0; list-style: none; }
+        #result li {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--line);
+        }
+        #result li:last-child { border-bottom: 0; }
+        #result li b { font-variant-numeric: tabular-nums; color: var(--wheat); }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Dough Simulator</h1>
+        <a href="http://maisonserraj.ma"><img src="logo.webp" alt="Logo" onerror="this.hidden = true" /></a>
+    </header>
+
+    <main>
+        <section>
+            <label for="type">نوع العجينة</label>
+            <select id="type">
+                <option value="Semoule">السميدة</option>
+                <option value="Baguette">باگيط عادي</option>
+                <option value="Pain Ou Lait">خبز بالحليب</option>
+                <option value="Org">الشعير</option>
+                <option value="Zr3">زرع</option>
+                <option value="trad">طراد</option>
+                <option value="pain ou plus">بان او بلوس</option>
+            </select>
+        </section>
+
+        <section>
+            <div class="head"><span>شحال كدير فپياسة؟</span><span>بياسات</span><span>كيلو</span></div>
+            <div id="rows"></div>
+            <output id="total" data-placeholder="المجموع بالكيلو"></output>
+        </section>
+
+        <section>
+            <label for="kilos">شحال بغيتي من كيلو؟</label>
+            <input type="number" id="kilos" inputmode="decimal" placeholder="كيتحسب لوحدو من المجموع" />
+        </section>
+
+        <section id="result" hidden>
+            <h2 id="doughName"></h2>
+            <ul id="list"></ul>
+        </section>
+    </main>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+
+        const G = "جرام", KG = "كيلو", L = "لتر";
+
+        // Each recipe: `divisor` converts (bag grams × pieces) to kilos;
+        // `rows(k, kb)` returns [label, amount, unit] lines.
+        // k  = kilos typed in, or the running total when empty.
+        // kb = kilos typed in, or the last batch when empty (used by "Pain Ou Lait" sugar/salt).
+        const basic = (k) => [
+            ["السكر", 30 * k, G],
+            ["الملح", 18 * k, G],
+            ["البودر", 3 * k, G],
+            ["الماء", 600 * k, L],
+        ];
+
+        const RECIPES = {
+            "Semoule": { divisor: 1600, rows: basic },
+            "Baguette": { divisor: 1600, rows: basic },
+            "Pain Ou Lait": {
+                divisor: 1600,
+                rows: (k, kb) => [
+                    ["السكر", 80 * kb, G],
+                    ["الملح", 20 * kb, G],
+                    ["الزبدة", 80 * k, G],
+                    ["البودر", 3 * k, G],
+                    ["الماء", 450 * k, L],
+                    ["النيدو", 10 * k, G],
+                ],
+            },
+            "Org": {
+                divisor: 1600,
+                rows: (k) => {
+                    const flour = (k / 6) * 4;
+                    return [
+                        ["السكر", 15 * k, G],
+                        ["الملح", 18 * k, G],
+                        ["البودر", 3 * k, G],
+                        ["الماء", 600 * k, L],
+                        ["الدقيق", flour, KG],
+                        ["البلبولة", flour * 50, G],
+                        ["سيگل/زرع/شعير", flour * 150, G],
+                    ];
+                },
+            },
+            "Zr3": {
+                divisor: 1600,
+                rows: (k) => {
+                    const flour = k / 1.7777;
+                    return [
+                        ["السكر", 15 * k, G],
+                        ["الملح", 18 * k, G],
+                        ["البودر", 3 * k, G],
+                        ["الماء", 600 * k, L],
+                        ["الدقيق", flour, KG],
+                        ["زرع", k - flour, KG],
+                        ["مالتي", 10 * k, G],
+                    ];
+                },
+            },
+            "trad": {
+                divisor: 1700,
+                rows: (k) => [
+                    ["مالتي سافور", 20 * k, G],
+                    ["ملح", 15 * k, G],
+                    ["خميرة بلدية", 25 * k, G],
+                    ["الماء", 650 * k, L],
+                    ["بوليش", 200 * k, G],
+                ],
+            },
+            "pain ou plus": {
+                divisor: 1700,
+                rows: (k) => [
+                    ["بان او بلوس", 70 * k, G],
+                    ["ملح", 15 * k, G],
+                    ["خميرة بلدية", 25 * k, G],
+                    ["الماء", 700 * k, L],
+                ],
+            },
+        };
+
+        const fmt = (n) => Math.floor(n).toLocaleString("en-US");
+        const fmt1 = (n) => n.toLocaleString("en-US", { maximumFractionDigits: 1 });
+
+        const rowsBox = $("rows");
+
+        function addRow(bag = "") {
+            const row = document.createElement("div");
+            row.className = "batch";
+            row.innerHTML = `
+                <input type="number" class="bag" inputmode="decimal" placeholder="250g مثلا" />
+                <input type="number" class="pcs" inputmode="numeric" placeholder="شحال من بياسة؟" />
+                <output></output>`;
+            row.querySelector(".bag").value = bag;
+            rowsBox.append(row);
+        }
+
+        // Fills each row's kilos and returns the running total and the last non-empty batch.
+        function readRows() {
+            const divisor = RECIPES[$("type").value].divisor;
+            let total = 0, last = 0;
+            for (const row of rowsBox.children) {
+                const kilos =
+                    (Number(row.querySelector(".bag").value) * Number(row.querySelector(".pcs").value)) / divisor;
+                row.querySelector("output").textContent = kilos ? fmt1(kilos) : "";
+                total += kilos;
+                if (kilos !== 0) last = kilos;
+            }
+            $("total").textContent = total !== 0 ? `المجموع ${fmt1(total)} كيلو` : "";
+            return { total, last };
+        }
+
+        function showResult() {
+            const { total, last } = readRows();
+            const typed = Number($("kilos").value);
+            const k = typed > 0 ? typed : total;
+            const kb = typed > 0 ? typed : last;
+            const name = $("type").value;
+
+            $("result").hidden = k <= 0;
+            $("doughName").textContent = name;
+            $("list").replaceChildren(
+                ...RECIPES[name].rows(k, kb).map(([label, amount, unit]) => {
+                    const li = document.createElement("li");
+                    const value = document.createElement("b");
+                    value.textContent = `${fmt(amount)} ${unit}`;
+                    li.append(label, value);
+                    return li;
+                })
+            );
+        }
+
+        // Rows or dough type changed: keep one empty row ready, refresh the kilos field, recalculate.
+        function onBatchChange() {
+            const lastRow = rowsBox.lastElementChild;
+            const bag = lastRow.querySelector(".bag").value;
+            if (Number(bag) > 0 && Number(lastRow.querySelector(".pcs").value) > 0) addRow(bag);
+
+            const { total } = readRows();
+            if (total !== 0) $("kilos").value = Math.floor(total);
+            showResult();
+        }
+
+        rowsBox.addEventListener("input", onBatchChange);
+        $("type").addEventListener("change", onBatchChange);
+        $("kilos").addEventListener("input", showResult);
+
+        addRow();
+        $("rows").querySelector(".pcs").focus();
+    </script>
+</body>
+</html>
