@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dough Simulator for pieces</title>
+    <script>
+        // Set the theme before the page paints to avoid a flash
+        var savedTheme;
+        try { savedTheme = JSON.parse(localStorage.getItem("doughTheme")); } catch (e) {}
+        document.documentElement.dataset.theme =
+            savedTheme === "light" || savedTheme === "dark"
+                ? savedTheme
+                : matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    </script>
+    <style>
+        :root {
+            --oven: #1b1d1c;
+            --crust: #262a28;
+            --line: #3a403d;
+            --flour: #eef0ea;
+            --muted: #98a39d;
+            --wheat: #e0a63f;
+            --sage: #7fb5ab;
+            --radius: 10px;
+            color-scheme: dark;
+        }
+
+        :root[data-theme="light"] {
+            --oven: #f3efe6;
+            --crust: #fffdf8;
+            --line: #ddd5c4;
+            --flour: #23282a;
+            --muted: #69736d;
+            --wheat: #a3690a;
+            --sage: #2c7a6c;
+            color-scheme: light;
+        }
+
+        /* Element styles below would otherwise override the hidden attribute */
+        [hidden] { display: none !important; }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100svh;
+            background: var(--oven);
+            color: var(--flour);
+            font: 1rem/1.5 system-ui, "Segoe UI", Tahoma, sans-serif;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 14px 16px;
+        }
+        header h1 { margin: 0; font-size: 1.15rem; color: var(--wheat); }
+        header img { display: block; width: 64px; }
+
+        .tools { display: flex; gap: 8px; }
+        .icon-btn {
+            width: 38px;
+            height: 38px;
+            font-size: 1.1rem;
+            line-height: 1;
+            color: var(--flour);
+            background: var(--crust);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            cursor: pointer;
+        }
+        .icon-btn[aria-expanded="true"] { color: var(--wheat); border-color: var(--wheat); }
+        .icon-btn:focus-visible, .actions button:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
+
+        .field { display: grid; gap: 6px; }
+        .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .actions button {
+            padding: 11px;
+            font: inherit;
+            font-weight: 700;
+            color: var(--flour);
+            background: var(--oven);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            cursor: pointer;
+        }
+        .actions .primary { color: var(--oven); background: var(--wheat); border-color: var(--wheat); }
+
+        #whatsNew { border-color: var(--wheat); }
+        #whatsNew p { margin: 0; }
+
+        #settingsBody { display: grid; gap: 8px; }
+        details { padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); }
+        summary { cursor: pointer; font-weight: 700; color: var(--wheat); }
+        details[open] summary { margin-bottom: 10px; }
+        details h3 { margin: 14px 0 8px; font-size: .95rem; color: var(--sage); }
+        details h3:first-of-type { margin-top: 0; }
+        label.field { font-size: 1rem; }
+        label.field span { color: var(--muted); font-size: .85rem; }
+
+        main {
+            display: grid;
+            gap: 14px;
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 0 16px 32px;
+        }
+
+        section {
+            display: grid;
+            gap: 10px;
+            padding: 16px;
+            background: var(--crust);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+        }
+
+        label, .head { color: var(--muted); font-size: .85rem; }
+
+        input, select {
+            width: 100%;
+            padding: 11px 8px;
+            font: inherit;
+            text-align: center;
+            color: var(--flour);
+            background: var(--oven);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+        }
+        select { text-align-last: center; }
+        input::placeholder { color: var(--muted); font-size: .85rem; }
+        input:focus-visible, select:focus-visible { outline: 2px solid var(--sage); outline-offset: 2px; }
+
+        /* Batch rows: bag weight, pieces, resulting kilos */
+        .batch, .head { display: grid; grid-template-columns: 1fr 1fr 64px; gap: 8px; align-items: center; }
+        .head span { text-align: center; }
+        .batch output { text-align: center; color: var(--sage); font-variant-numeric: tabular-nums; }
+
+        /* Running total: the one loud element */
+        #total {
+            display: block;
+            padding: 10px;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--wheat);
+            border: 1px dashed var(--line);
+            border-radius: var(--radius);
+            font-variant-numeric: tabular-nums;
+        }
+        #total:empty::before { content: attr(data-placeholder); color: var(--muted); font-size: .9rem; font-weight: 400; }
+
+        #result h2 { margin: 0; color: var(--wheat); font-size: 1.1rem; }
+        #result ul { margin: 0; padding: 0; list-style: none; }
+        #result li {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--line);
+        }
+        #result li:last-child { border-bottom: 0; }
+        #result li b { font-variant-numeric: tabular-nums; color: var(--wheat); }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Dough Simulator</h1>
+        <div class="tools">
+            <button type="button" class="icon-btn" id="themeBtn"></button>
+            <button type="button" class="icon-btn" id="settingsBtn" aria-expanded="false" aria-controls="settings" aria-label="إعدادات المقادير">⚙</button>
+        </div>
+        <a href="http://maisonserraj.ma"><img src="logo.webp" alt="Logo" onerror="this.hidden = true" /></a>
+    </header>
+
+    <main>
+        <section id="whatsNew" role="status" hidden>
+            <p><b>جديد 🎉</b> دابا تقدر تبدل مقادير كل عجينة من زر ⚙ فالأعلى، وتختار الثيم الداكن أو الفاتح بزر ☀/☾.</p>
+            <div class="actions">
+                <button type="button" class="primary" id="openNew">جرّبها الآن</button>
+                <button type="button" id="dismissNew">فهمت</button>
+            </div>
+        </section>
+
+        <section id="settings" hidden>
+            <label>مقادير كل عجينة (لكل كيلو عجين)</label>
+            <div id="settingsBody"></div>
+            <div class="actions">
+                <button type="button" class="primary" id="saveSettings">حفظ</button>
+                <button type="button" id="resetSettings">القيم الأصلية</button>
+            </div>
+        </section>
+
+        <section>
+            <label for="type">نوع العجينة</label>
+            <select id="type">
+                <option value="Semoule">السميدة</option>
+                <option value="Baguette">باگيط عادي</option>
+                <option value="Pain Ou Lait">خبز بالحليب</option>
+                <option value="Org">الشعير</option>
+                <option value="Zr3">زرع</option>
+                <option value="trad">طراد</option>
+                <option value="pain ou plus">بان او بلوس</option>
+            </select>
+        </section>
+
+        <section>
+            <div class="head"><span>شحال كدير فپياسة؟</span><span>بياسات</span><span>كيلو</span></div>
+            <div id="rows"></div>
+            <output id="total" data-placeholder="المجموع بالكيلو"></output>
+        </section>
+
+        <section>
+            <label for="kilos">شحال بغيتي من كيلو؟</label>
+            <input type="number" id="kilos" inputmode="decimal" placeholder="كيتحسب لوحدو من المجموع" />
+        </section>
+
+        <section id="result" hidden>
+            <h2 id="doughName"></h2>
+            <ul id="list"></ul>
+        </section>
+    </main>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+
+        const G = "جرام", KG = "كيلو", L = "لتر";
+
+        const SETTINGS_KEY = "doughSettings", THEME_KEY = "doughTheme";
+
+        // localStorage can be unavailable or blocked, so every access is guarded
+        const store = {
+            get(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
+            set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* ignore */ } },
+            remove(key) { try { localStorage.removeItem(key); } catch { /* ignore */ } },
+        };
+
+        // Each recipe:
+        //   divisor : converts (bag grams × pieces) to kilos
+        //   fields  : editable amounts as [key, label, default] (per kilo of dough unless the label says otherwise)
+        //   rows    : (v, k, kb) => [label, amount, unit] lines, where
+        //             v = this recipe's amounts, k = kilos typed in (or the running total when empty),
+        //             kb = kilos typed in (or the last batch when empty; used by "Pain Ou Lait" sugar/salt)
+        const basicFields = (sugar) => [
+            ["sugar", "السكر", sugar],
+            ["salt", "الملح", 18],
+            ["powder", "البودر", 3],
+            ["water", "الماء", 600],
+        ];
+
+        const basic = (v, k) => [
+            ["السكر", v.sugar * k, G],
+            ["الملح", v.salt * k, G],
+            ["البودر", v.powder * k, G],
+            ["الماء", v.water * k, L],
+        ];
+
+        const RECIPES = {
+            "Semoule": { title: "السميدة", divisor: 1600, fields: basicFields(30), rows: basic },
+            "Baguette": { title: "باگيط عادي", divisor: 1600, fields: basicFields(30), rows: basic },
+            "Pain Ou Lait": {
+                title: "خبز بالحليب",
+                divisor: 1600,
+                fields: [
+                    ["sugar", "السكر", 80],
+                    ["salt", "الملح", 20],
+                    ["butter", "الزبدة", 80],
+                    ["powder", "البودر", 3],
+                    ["water", "الماء", 450],
+                    ["nido", "النيدو", 10],
+                ],
+                rows: (v, k, kb) => [
+                    ["السكر", v.sugar * kb, G],
+                    ["الملح", v.salt * kb, G],
+                    ["الزبدة", v.butter * k, G],
+                    ["البودر", v.powder * k, G],
+                    ["الماء", v.water * k, L],
+                    ["النيدو", v.nido * k, G],
+                ],
+            },
+            "Org": {
+                title: "الشعير",
+                divisor: 1600,
+                fields: [
+                    ...basicFields(15),
+                    ["blbola", "البلبولة (لكل كيلو دقيق)", 50],
+                    ["sigle", "سيگل/زرع/شعير (لكل كيلو دقيق)", 150],
+                ],
+                rows: (v, k) => {
+                    const flour = (k / 6) * 4;
+                    return [
+                        ...basic(v, k),
+                        ["الدقيق", flour, KG],
+                        ["البلبولة", flour * v.blbola, G],
+                        ["سيگل/زرع/شعير", flour * v.sigle, G],
+                    ];
+                },
+            },
+            "Zr3": {
+                title: "زرع",
+                divisor: 1600,
+                fields: [...basicFields(15), ["malt", "مالتي", 10]],
+                rows: (v, k) => {
+                    const flour = k / 1.7777;
+                    return [
+                        ...basic(v, k),
+                        ["الدقيق", flour, KG],
+                        ["زرع", k - flour, KG],
+                        ["مالتي", v.malt * k, G],
+                    ];
+                },
+            },
+            "trad": {
+                title: "طراد",
+                divisor: 1700,
+                fields: [
+                    ["savor", "مالتي سافور", 20],
+                    ["salt", "ملح", 15],
+                    ["khmira", "خميرة بلدية", 25],
+                    ["water", "الماء", 650],
+                    ["polish", "بوليش", 200],
+                ],
+                rows: (v, k) => [
+                    ["مالتي سافور", v.savor * k, G],
+                    ["ملح", v.salt * k, G],
+                    ["خميرة بلدية", v.khmira * k, G],
+                    ["الماء", v.water * k, L],
+                    ["بوليش", v.polish * k, G],
+                ],
+            },
+            "pain ou plus": {
+                title: "بان او بلوس",
+                divisor: 1700,
+                fields: [
+                    ["main", "بان او بلوس", 70],
+                    ["salt", "ملح", 15],
+                    ["khmira", "خميرة بلدية", 25],
+                    ["water", "الماء", 700],
+                ],
+                rows: (v, k) => [
+                    ["بان او بلوس", v.main * k, G],
+                    ["ملح", v.salt * k, G],
+                    ["خميرة بلدية", v.khmira * k, G],
+                    ["الماء", v.water * k, L],
+                ],
+            },
+        };
+
+        // Saved amount if valid, otherwise the recipe's default
+        function loadSettings() {
+            const saved = store.get(SETTINGS_KEY) || {};
+            return Object.fromEntries(
+                Object.entries(RECIPES).map(([name, { fields }]) => [
+                    name,
+                    Object.fromEntries(
+                        fields.map(([key, , fallback]) => {
+                            const value = saved[name]?.[key];
+                            return [key, Number.isFinite(value) && value >= 0 ? value : fallback];
+                        })
+                    ),
+                ])
+            );
+        }
+
+        let settings = loadSettings();
+
+        const fmt = (n) => Math.floor(n).toLocaleString("en-US");
+        const fmt1 = (n) => n.toLocaleString("en-US", { maximumFractionDigits: 1 });
+
+        const rowsBox = $("rows");
+
+        function addRow(bag = "") {
+            const row = document.createElement("div");
+            row.className = "batch";
+            row.innerHTML = `
+                <input type="number" class="bag" inputmode="decimal" placeholder="250g مثلا" />
+                <input type="number" class="pcs" inputmode="numeric" placeholder="شحال من بياسة؟" />
+                <output></output>`;
+            row.querySelector(".bag").value = bag;
+            rowsBox.append(row);
+        }
+
+        // Fills each row's kilos and returns the running total and the last non-empty batch.
+        function readRows() {
+            const divisor = RECIPES[$("type").value].divisor;
+            let total = 0, last = 0;
+            for (const row of rowsBox.children) {
+                const kilos =
+                    (Number(row.querySelector(".bag").value) * Number(row.querySelector(".pcs").value)) / divisor;
+                row.querySelector("output").textContent = kilos ? fmt1(kilos) : "";
+                total += kilos;
+                if (kilos !== 0) last = kilos;
+            }
+            $("total").textContent = total !== 0 ? `المجموع ${fmt1(total)} كيلو` : "";
+            return { total, last };
+        }
+
+        function showResult() {
+            const { total, last } = readRows();
+            const typed = Number($("kilos").value);
+            const k = typed > 0 ? typed : total;
+            const kb = typed > 0 ? typed : last;
+            const name = $("type").value;
+
+            $("result").hidden = k <= 0;
+            $("doughName").textContent = name;
+            $("list").replaceChildren(
+                ...RECIPES[name].rows(settings[name], k, kb).map(([label, amount, unit]) => {
+                    const li = document.createElement("li");
+                    const value = document.createElement("b");
+                    value.textContent = `${fmt(amount)} ${unit}`;
+                    li.append(label, value);
+                    return li;
+                })
+            );
+        }
+
+        // Rows or dough type changed: keep one empty row ready, refresh the kilos field, recalculate.
+        function onBatchChange() {
+            const lastRow = rowsBox.lastElementChild;
+            const bag = lastRow.querySelector(".bag").value;
+            if (Number(bag) > 0 && Number(lastRow.querySelector(".pcs").value) > 0) addRow(bag);
+
+            const { total } = readRows();
+            if (total !== 0) $("kilos").value = Math.floor(total);
+            showResult();
+        }
+
+        rowsBox.addEventListener("input", onBatchChange);
+        $("type").addEventListener("change", onBatchChange);
+        $("kilos").addEventListener("input", showResult);
+
+        // ---- Amount settings (hidden until the user opens it) ----
+        // Similar doughs share a section, but every dough keeps its own values.
+        const GROUPS = [
+            ["السميدة", ["Semoule"]],
+            ["باگيط عادي", ["Baguette"]],
+            ["الشعير وزرع", ["Org", "Zr3"]],
+            ["طراد وبان او بلوس", ["trad", "pain ou plus"]],
+            ["خبز بالحليب", ["Pain Ou Lait"]],
+        ];
+
+        const settingsBody = $("settingsBody");
+        settingsBody.innerHTML = GROUPS.map(([title, names]) => `
+            <details data-recipes="${names.join("|")}">
+                <summary>${title}</summary>
+                ${names.map((name) => `
+                    ${names.length > 1 ? `<h3>${RECIPES[name].title}</h3>` : ""}
+                    <div class="pair">
+                        ${RECIPES[name].fields.map(([key, label]) => `
+                            <label class="field"><span>${label}</span>
+                                <input type="number" min="0" step="any" inputmode="decimal" data-recipe="${name}" data-key="${key}" />
+                            </label>`).join("")}
+                    </div>`).join("")}
+            </details>`).join("");
+
+        const settingsInputs = settingsBody.querySelectorAll("input");
+
+        function fillSettings() {
+            settingsInputs.forEach((input) => (input.value = settings[input.dataset.recipe][input.dataset.key]));
+        }
+
+        $("settingsBtn").addEventListener("click", (event) => {
+            const open = $("settings").hidden;
+            $("settings").hidden = !open;
+            event.currentTarget.setAttribute("aria-expanded", open);
+            if (open) {
+                fillSettings();
+                // Open the section of the dough currently selected
+                settingsBody.querySelectorAll("details").forEach((details) => {
+                    details.open = details.dataset.recipes.split("|").includes($("type").value);
+                });
+            }
+        });
+
+        $("saveSettings").addEventListener("click", (event) => {
+            const next = {};
+            settingsInputs.forEach((input) => {
+                const { recipe, key } = input.dataset;
+                const fallback = RECIPES[recipe].fields.find(([fieldKey]) => fieldKey === key)[2];
+                const value = input.value.trim() === "" ? NaN : Number(input.value);
+                (next[recipe] ??= {})[key] = Number.isFinite(value) && value >= 0 ? value : fallback;
+            });
+            settings = next;
+            store.set(SETTINGS_KEY, next);
+            fillSettings();
+            showResult();
+
+            const button = event.currentTarget;
+            button.textContent = "تم الحفظ ✔";
+            setTimeout(() => (button.textContent = "حفظ"), 1500);
+        });
+
+        $("resetSettings").addEventListener("click", () => {
+            store.remove(SETTINGS_KEY);
+            settings = loadSettings();
+            fillSettings();
+            showResult();
+        });
+
+        // ---- Theme ----
+        function applyTheme(theme) {
+            document.documentElement.dataset.theme = theme;
+            $("themeBtn").textContent = theme === "dark" ? "☀" : "☾";
+            $("themeBtn").setAttribute("aria-label", theme === "dark" ? "الثيم الفاتح" : "الثيم الداكن");
+        }
+
+        $("themeBtn").addEventListener("click", () => {
+            const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+            store.set(THEME_KEY, next);
+            applyTheme(next);
+        });
+
+// ---- "What's new" notice: shown once per version, until dismissed ----
+        const APP_VERSION = "2026-11-03", SEEN_KEY = "doughSeenVersion";
+
+        function dismissNew() {
+            $("whatsNew").hidden = true;
+            store.set(SEEN_KEY, APP_VERSION);
+        }
+
+        $("whatsNew").hidden = store.get(SEEN_KEY) === APP_VERSION;
+        $("dismissNew").addEventListener("click", dismissNew);
+        $("openNew").addEventListener("click", () => {
+            dismissNew();
+            $("settingsBtn").click();
+        });
+
+                applyTheme(document.documentElement.dataset.theme);
+        addRow();
+        $("rows").querySelector(".pcs").focus();
+    </script>
+</body>
+</html>
